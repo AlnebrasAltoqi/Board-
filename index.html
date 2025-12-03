@@ -1,0 +1,938 @@
+<!doctype html>
+<html lang="en">
+ <head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Board Game Collection</title>
+  <script src="/_sdk/element_sdk.js"></script>
+  <style>
+    body {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+      font-family: 'Arial', sans-serif;
+      background: linear-gradient(135deg, #2d3748 0%, #1a202c 100%);
+      min-height: 100%;
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    /* Navigation */
+    nav {
+      background: rgba(255, 255, 255, 0.95);
+      padding: 1.5rem 2rem;
+      box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+      position: sticky;
+      top: 0;
+      z-index: 100;
+    }
+
+    .nav-content {
+      max-width: 1200px;
+      margin: 0 auto;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      flex-wrap: wrap;
+      gap: 1rem;
+    }
+
+    .logo {
+      font-size: 1.5rem;
+      font-weight: bold;
+      color: #AC6895;
+    }
+
+    .tagline {
+      font-size: 0.9rem;
+      color: #666;
+      margin-left: 1rem;
+    }
+
+    .nav-links {
+      display: flex;
+      gap: 2rem;
+      flex-wrap: wrap;
+    }
+
+    .nav-link {
+      background: none;
+      border: none;
+      color: #333;
+      font-size: 1rem;
+      cursor: pointer;
+      padding: 0.5rem 1rem;
+      border-radius: 6px;
+      transition: all 0.3s;
+      font-weight: 500;
+    }
+
+    .nav-link:hover {
+      background: #AC6895;
+      color: white;
+      transform: translateY(-2px);
+    }
+
+    .nav-link.active {
+      background: #AC6895;
+      color: white;
+    }
+
+    /* Page Container */
+    .page {
+      display: none;
+      padding: 3rem 2rem;
+      max-width: 1200px;
+      margin: 0 auto;
+      animation: fadeIn 0.5s;
+    }
+
+    .page.active {
+      display: block;
+    }
+
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(20px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    .page-title {
+      text-align: center;
+      color: white;
+      font-size: 2.5rem;
+      margin-bottom: 3rem;
+      text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.2);
+    }
+
+    /* Bundle Page */
+    .bundle-selector {
+      background: white;
+      border-radius: 16px;
+      padding: 2rem;
+      margin-bottom: 2rem;
+      box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+    }
+
+    .bundle-options {
+      display: flex;
+      gap: 1rem;
+      justify-content: center;
+      margin-bottom: 2rem;
+      flex-wrap: wrap;
+    }
+
+    .bundle-option {
+      background: #f8f9fa;
+      border: 3px solid #e9ecef;
+      border-radius: 12px;
+      padding: 1.5rem 2rem;
+      cursor: pointer;
+      transition: all 0.3s;
+      text-align: center;
+      min-width: 120px;
+    }
+
+    .bundle-option:hover {
+      border-color: #AC6895;
+      transform: translateY(-4px);
+      box-shadow: 0 4px 12px rgba(172, 104, 149, 0.3);
+    }
+
+    .bundle-option.selected {
+      background: #AC6895;
+      color: white;
+      border-color: #AC6895;
+    }
+
+    .bundle-count {
+      font-size: 2rem;
+      font-weight: bold;
+      margin-bottom: 0.5rem;
+    }
+
+    .game-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+      gap: 1.5rem;
+      margin-bottom: 2rem;
+    }
+
+    .game-card {
+      background: white;
+      border-radius: 12px;
+      padding: 1.5rem;
+      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+      cursor: pointer;
+      transition: all 0.3s;
+      border: 3px solid transparent;
+    }
+
+    .game-card:hover {
+      transform: translateY(-4px);
+      box-shadow: 0 6px 20px rgba(0, 0, 0, 0.15);
+    }
+
+    .game-card.selected {
+      border-color: #AC6895;
+      background: #f9f5f8;
+    }
+
+    .game-image {
+      width: 100%;
+      height: 150px;
+      object-fit: cover;
+      border-radius: 8px;
+      margin-bottom: 1rem;
+      background: #e9ecef;
+    }
+
+    .game-name {
+      text-align: center;
+      font-weight: bold;
+      color: #333;
+      margin-bottom: 0.5rem;
+    }
+
+    .game-players {
+      text-align: center;
+      font-size: 0.9rem;
+      color: #666;
+    }
+
+    .bundle-actions {
+      display: flex;
+      gap: 1rem;
+      justify-content: center;
+      flex-wrap: wrap;
+    }
+
+    .btn {
+      padding: 1rem 2rem;
+      border: none;
+      border-radius: 8px;
+      font-size: 1rem;
+      font-weight: bold;
+      cursor: pointer;
+      transition: all 0.3s;
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+    }
+
+    .btn-primary {
+      background: #AC6895;
+      color: white;
+    }
+
+    .btn-primary:hover {
+      background: #8f5179;
+      transform: translateY(-2px);
+      box-shadow: 0 4px 12px rgba(172, 104, 149, 0.3);
+    }
+
+    .btn-secondary {
+      background: #10b981;
+      color: white;
+    }
+
+    .btn-secondary:hover {
+      background: #059669;
+      transform: translateY(-2px);
+    }
+
+    .btn-random {
+      background: #8b5cf6;
+      color: white;
+    }
+
+    .btn-random:hover {
+      background: #7c3aed;
+      transform: translateY(-2px);
+    }
+
+    .selection-info {
+      text-align: center;
+      margin: 1.5rem 0;
+      padding: 1rem;
+      background: #f9f5f8;
+      border-radius: 8px;
+      font-size: 1.1rem;
+      color: #AC6895;
+      font-weight: bold;
+    }
+
+    /* Shop Page */
+    .shop-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+      gap: 2rem;
+    }
+
+    .product-card {
+      background: white;
+      border-radius: 12px;
+      padding: 1.5rem;
+      box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+      transition: all 0.3s;
+    }
+
+    .product-card:hover {
+      transform: translateY(-8px);
+      box-shadow: 0 8px 25px rgba(0, 0, 0, 0.15);
+    }
+
+    .product-image {
+      width: 100%;
+      height: 200px;
+      object-fit: cover;
+      border-radius: 8px;
+      margin-bottom: 1rem;
+      background: #e9ecef;
+    }
+
+    .product-name {
+      font-size: 1.3rem;
+      font-weight: bold;
+      color: #333;
+      text-align: center;
+      margin-bottom: 0.5rem;
+    }
+
+    .product-desc {
+      text-align: center;
+      color: #666;
+      font-size: 0.9rem;
+      margin-bottom: 1rem;
+    }
+
+    .product-price {
+      text-align: center;
+      font-size: 1.5rem;
+      font-weight: bold;
+      color: #AC6895;
+      margin-bottom: 1rem;
+    }
+
+    .btn-buy {
+      width: 100%;
+      background: #AC6895;
+      color: white;
+      padding: 0.8rem;
+      border: none;
+      border-radius: 8px;
+      font-weight: bold;
+      cursor: pointer;
+      transition: all 0.3s;
+    }
+
+    .btn-buy:hover {
+      background: #8f5179;
+      transform: translateY(-2px);
+    }
+
+    /* Videos Page */
+    .video-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+      gap: 2rem;
+    }
+
+    .video-card {
+      background: white;
+      border-radius: 12px;
+      overflow: hidden;
+      box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+      transition: all 0.3s;
+      cursor: pointer;
+    }
+
+    .video-card:hover {
+      transform: translateY(-4px);
+      box-shadow: 0 8px 25px rgba(0, 0, 0, 0.15);
+    }
+
+    .video-thumbnail {
+      height: 180px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      position: relative;
+      background: #e9ecef;
+      overflow: hidden;
+    }
+
+    .video-thumbnail-image {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+    }
+
+    .play-button {
+      position: absolute;
+      background: rgba(255, 255, 255, 0.95);
+      border-radius: 50%;
+      width: 60px;
+      height: 60px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 1.5rem;
+      color: #AC6895;
+      padding-left: 4px;
+    }
+
+    .video-info {
+      padding: 1.5rem;
+    }
+
+    .video-title {
+      font-size: 1.2rem;
+      font-weight: bold;
+      color: #333;
+      margin-bottom: 0.5rem;
+    }
+
+    .video-duration {
+      color: #666;
+      font-size: 0.9rem;
+    }
+
+    /* Spotlight Page */
+    .spotlight-hero {
+      background: white;
+      border-radius: 16px;
+      padding: 3rem;
+      box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+      text-align: center;
+      margin-bottom: 3rem;
+    }
+
+    .spotlight-name {
+      font-size: 3rem;
+      font-weight: bold;
+      color: #AC6895;
+      margin-bottom: 1rem;
+    }
+
+    .spotlight-desc {
+      font-size: 1.2rem;
+      color: #666;
+      max-width: 800px;
+      margin: 0 auto 2rem;
+      line-height: 1.6;
+    }
+
+    .features-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+      gap: 2rem;
+      margin-bottom: 2rem;
+    }
+
+    .feature-box {
+      background: #f8f9fa;
+      padding: 2rem;
+      border-radius: 12px;
+      text-align: center;
+    }
+
+    .feature-icon {
+      font-size: 3rem;
+      margin-bottom: 1rem;
+    }
+
+    .feature-title {
+      font-size: 1.3rem;
+      font-weight: bold;
+      color: #333;
+      margin-bottom: 0.5rem;
+    }
+
+    .feature-text {
+      color: #666;
+    }
+
+    /* Home Page */
+    .hero-section {
+      background: rgba(255, 255, 255, 0.98);
+      padding: 6rem 3rem;
+      text-align: center;
+      margin-bottom: 0;
+      border-radius: 0;
+    }
+
+    .hero-title {
+      font-size: 4.5rem;
+      font-weight: bold;
+      color: #2d3748;
+      margin-bottom: 1rem;
+      text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.05);
+    }
+
+    .hero-subtitle {
+      font-size: 1.8rem;
+      color: #AC6895;
+      margin-bottom: 2.5rem;
+      font-weight: 500;
+    }
+
+    .hero-description {
+      font-size: 1.3rem;
+      color: #555;
+      max-width: 900px;
+      margin: 0 auto 3.5rem;
+      line-height: 2;
+    }
+
+    .cta-button {
+      padding: 1.5rem 4rem;
+      background: #AC6895;
+      color: white;
+      border: none;
+      border-radius: 50px;
+      font-size: 1.4rem;
+      font-weight: bold;
+      cursor: pointer;
+      transition: all 0.3s;
+      box-shadow: 0 6px 20px rgba(172, 104, 149, 0.3);
+    }
+
+    .cta-button:hover {
+      background: #8f5179;
+      transform: translateY(-3px);
+      box-shadow: 0 8px 30px rgba(172, 104, 149, 0.4);
+    }
+
+    .info-section {
+      background: white;
+      padding: 5rem 3rem;
+    }
+
+    .info-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+      gap: 3rem;
+      max-width: 1200px;
+      margin: 0 auto;
+    }
+
+    .info-card {
+      background: transparent;
+      padding: 2rem;
+      transition: all 0.3s;
+      border-left: 4px solid #AC6895;
+    }
+
+    .info-card:hover {
+      transform: translateX(10px);
+      border-left-width: 8px;
+    }
+
+    .info-title {
+      font-size: 2rem;
+      font-weight: bold;
+      color: #2d3748;
+      margin-bottom: 1rem;
+      text-align: left;
+    }
+
+    .info-text {
+      font-size: 1.15rem;
+      color: #666;
+      line-height: 1.8;
+      text-align: left;
+    }
+
+    @media (max-width: 768px) {
+      .nav-content {
+        flex-direction: column;
+        text-align: center;
+      }
+
+      .tagline {
+        margin-left: 0;
+      }
+
+      .page-title {
+        font-size: 2rem;
+      }
+
+      .game-grid,
+      .shop-grid,
+      .video-grid {
+        grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+      }
+
+      .spotlight-name {
+        font-size: 2rem;
+      }
+    }
+  </style>
+  <style>@view-transition { navigation: auto; }</style>
+  <script src="/_sdk/data_sdk.js" type="text/javascript"></script>
+  <script src="https://cdn.tailwindcss.com" type="text/javascript"></script>
+ </head>
+ <body>
+  <nav>
+   <div class="nav-content">
+    <div><span class="logo" id="company-name">GameVault</span> <span class="tagline" id="tagline">Curated board games for every occasion</span>
+    </div>
+    <div class="nav-links"><button class="nav-link active" onclick="showPage('home')">Home</button> <button class="nav-link" onclick="showPage('rent')">Rent</button> <button class="nav-link" onclick="showPage('shop')">Shop</button> <button class="nav-link" onclick="showPage('videos')">Tutorials</button> <button class="nav-link" onclick="showPage('spotlight')">Spotlight</button>
+    </div>
+   </div>
+  </nav><!-- Home Page -->
+  <div id="home-page" class="page active" style="padding: 0; max-width: 100%;">
+   <div class="hero-section">
+    <h1 class="hero-title" id="hero-title">Board?</h1>
+    <p class="hero-subtitle" id="hero-subtitle">Your Gateway to Unforgettable Game Nights</p>
+    <p class="hero-description" id="hero-description">Discover the perfect board games for every occasion. Whether you're hosting a family gathering, a game night with friends, or looking for the next strategic challenge, we've curated the finest collection of board games just for you. Rent custom bundles, purchase individual games, or explore our exclusive Omani-themed creations.</p><button class="cta-button" onclick="showPage('rent')">Start Building Your Bundle</button>
+   </div>
+   <div class="info-section">
+    <div class="info-grid">
+     <div class="info-card">
+      <h3 class="info-title">Custom Bundles</h3>
+      <p class="info-text">Choose from 5, 10, or 15 game bundles. Hand-pick your favorites or roll the dice for a surprise selection. Perfect for game nights that last!</p>
+     </div>
+     <div class="info-card">
+      <h3 class="info-title">Quality Games</h3>
+      <p class="info-text">Every game in our collection is carefully selected for its gameplay, design, and replay value. From strategy classics to party favorites.</p>
+     </div>
+     <div class="info-card">
+      <h3 class="info-title">Omani Originals</h3>
+      <p class="info-text">Explore our exclusive Spot It Oman and Monopoly Deal Oman games, celebrating Omani culture and landmarks in exciting new ways.</p>
+     </div>
+    </div>
+   </div>
+  </div><!-- Rent Page -->
+  <div id="rent-page" class="page" style="padding: 0; max-width: 100%;">
+   <div style="background: white; padding: 4rem 3rem; text-align: center;">
+    <h1 style="font-size: 3rem; color: #AC6895; margin-bottom: 1rem;" id="bundle-title">Build Your Perfect Bundle</h1>
+    <p style="font-size: 1.2rem; color: #666; max-width: 700px; margin: 0 auto 3rem;">Select your bundle size and pick your favorite games, or let us surprise you with a random selection.</p>
+   </div>
+   <div style="background: #f8f9fa; padding: 4rem 3rem;">
+    <div style="max-width: 1200px; margin: 0 auto;">
+     <div class="bundle-selector">
+      <h2 style="text-align: center; margin-bottom: 1.5rem; color: #333;">Choose Your Bundle Size</h2>
+      <div class="bundle-options">
+       <div class="bundle-option" onclick="selectBundle(5)">
+        <div class="bundle-count">
+         5
+        </div>
+        <div>
+         Games
+        </div>
+       </div>
+       <div class="bundle-option" onclick="selectBundle(10)">
+        <div class="bundle-count">
+         10
+        </div>
+        <div>
+         Games
+        </div>
+       </div>
+       <div class="bundle-option" onclick="selectBundle(15)">
+        <div class="bundle-count">
+         15
+        </div>
+        <div>
+         Games
+        </div>
+       </div>
+      </div>
+      <div id="selection-info" class="selection-info" style="display: none;">
+       Select <span id="remaining">0</span> more games
+      </div>
+      <div id="game-selection" style="display: none;">
+       <h3 style="text-align: center; margin-bottom: 1.5rem; color: #333;">Choose Your Games</h3>
+       <div class="game-grid" id="games-grid"></div>
+       <div class="bundle-actions"><button class="btn btn-random" onclick="randomSelection()">Roll the Dice</button> <button class="btn btn-secondary" onclick="addToCollection()">Add to Collection</button>
+       </div>
+      </div>
+     </div>
+    </div>
+   </div>
+  </div><!-- Shop Page -->
+  <div id="shop-page" class="page" style="padding: 0; max-width: 100%;">
+   <div style="background: white; padding: 4rem 3rem; text-align: center;">
+    <h1 style="font-size: 3rem; color: #AC6895; margin-bottom: 1rem;" id="shop-title">Browse Our Collection</h1>
+    <p style="font-size: 1.2rem; color: #666; max-width: 700px; margin: 0 auto;">Purchase your favorite board games and build your personal collection.</p>
+   </div>
+   <div style="background: #f8f9fa; padding: 4rem 3rem;">
+    <div style="max-width: 1200px; margin: 0 auto;">
+     <div class="shop-grid" id="shop-grid"></div>
+    </div>
+   </div>
+  </div><!-- Videos Page -->
+  <div id="videos-page" class="page" style="padding: 0; max-width: 100%;">
+   <div style="background: white; padding: 4rem 3rem; text-align: center;">
+    <h1 style="font-size: 3rem; color: #AC6895; margin-bottom: 1rem;" id="videos-title">Game Tutorials</h1>
+    <p style="font-size: 1.2rem; color: #666; max-width: 700px; margin: 0 auto;">Learn how to play your favorite games with our easy-to-follow video guides.</p>
+   </div>
+   <div style="background: #f8f9fa; padding: 4rem 3rem;">
+    <div style="max-width: 1200px; margin: 0 auto;">
+     <div class="video-grid" id="videos-grid"></div>
+    </div>
+   </div>
+  </div><!-- Spotlight Page -->
+  <div id="spotlight-page" class="page" style="padding: 0; max-width: 100%;">
+   <div style="background: white; padding: 4rem 3rem; text-align: center;">
+    <h1 style="font-size: 3rem; color: #AC6895; margin-bottom: 1rem;">Featured Games</h1>
+    <p style="font-size: 1.2rem; color: #666; max-width: 700px; margin: 0 auto;">Discover our exclusive Omani-themed board games, designed with local culture in mind.</p>
+   </div>
+   <div style="background: #f8f9fa; padding: 4rem 3rem;">
+    <div style="max-width: 1200px; margin: 0 auto;">
+     <div class="spotlight-hero">
+      <h2 class="spotlight-name" id="spotlight-title">Spot It Oman</h2>
+      <p class="spotlight-desc">Experience the thrill of our custom-designed card game featuring iconic Omani landmarks and culture. Quick reflexes meet cultural discovery in this fast-paced matching game for all ages!</p><button class="btn btn-primary" style="font-size: 1.2rem;">Get Spot It Oman</button>
+     </div>
+     <div class="spotlight-hero">
+      <h2 class="spotlight-name" id="spotlight-title-2">Monopoly Deal Oman</h2>
+      <p class="spotlight-desc">The fast-paced card game version of Monopoly with an Omani twist! Collect property sets featuring famous Omani locations, charge rent, and bankrupt your opponents in this exciting strategy card game.</p><button class="btn btn-primary" style="font-size: 1.2rem;">Get Monopoly Deal Oman</button>
+     </div>
+     <div class="features-grid">
+      <div class="feature-box">
+       <div class="feature-icon">
+        🕌
+       </div>
+       <div class="feature-title">
+        Omani Culture
+       </div>
+       <div class="feature-text">
+        55 unique symbols featuring Omani landmarks, traditions, and heritage
+       </div>
+      </div>
+      <div class="feature-box">
+       <div class="feature-icon">
+        ⚡
+       </div>
+       <div class="feature-title">
+        Fast-Paced
+       </div>
+       <div class="feature-text">
+        Quick 15-minute rounds perfect for family game nights
+       </div>
+      </div>
+      <div class="feature-box">
+       <div class="feature-icon">
+        👨‍👩‍👧‍👦
+       </div>
+       <div class="feature-title">
+        All Ages
+       </div>
+       <div class="feature-text">
+        Fun for ages 6 and up, from 2 to 8 players
+       </div>
+      </div>
+      <div class="feature-box">
+       <div class="feature-icon">
+        🎨
+       </div>
+       <div class="feature-title">
+        Beautiful Design
+       </div>
+       <div class="feature-text">
+        Premium cards with stunning artwork and durable finish
+       </div>
+      </div>
+     </div>
+    </div>
+   </div>
+  </div>
+  <script>
+    const defaultConfig = {
+      company_name: "Board?",
+      tagline: "Curated board games for every occasion",
+      bundle_title: "Build Your Perfect Bundle",
+      shop_title: "Browse Our Collection",
+      videos_title: "Game Tutorials",
+      spotlight_title: "Spot It Oman",
+      spotlight_title_2: "Monopoly Deal Oman"
+    };
+
+    const games = [
+      { name: "Catan", icon: "🏝️", players: "3-4 players" },
+      { name: "Ticket to Ride", icon: "🚂", players: "2-5 players" },
+      { name: "Pandemic", icon: "���", players: "2-4 players" },
+      { name: "Carcassonne", icon: "🏰", players: "2-5 players" },
+      { name: "7 Wonders", icon: "🏛️", players: "2-7 players" },
+      { name: "Splendor", icon: "💎", players: "2-4 players" },
+      { name: "Azul", icon: "🔷", players: "2-4 players" },
+      { name: "Codenames", icon: "🕵️", players: "4-8 players" },
+      { name: "Wingspan", icon: "🦅", players: "1-5 players" },
+      { name: "Dixit", icon: "🎨", players: "3-6 players" },
+      { name: "King of Tokyo", icon: "🦖", players: "2-6 players" },
+      { name: "Dominion", icon: "👑", players: "2-4 players" },
+      { name: "Mysterium", icon: "👻", players: "2-7 players" },
+      { name: "Santorini", icon: "⛱️", players: "2-4 players" },
+      { name: "Hanabi", icon: "🎆", players: "2-5 players" }
+    ];
+
+    const products = [
+      { name: "Catan", image: "", desc: "Build settlements and cities", price: "$45" }, // ADD IMAGE: Recommended size 400x400px
+      { name: "Pandemic", image: "", desc: "Save the world together", price: "$40" }, // ADD IMAGE: Recommended size 400x400px
+      { name: "Ticket to Ride", image: "", desc: "Build railroad routes", price: "$50" }, // ADD IMAGE: Recommended size 400x400px
+      { name: "Azul", image: "", desc: "Beautiful tile-laying game", price: "$35" }, // ADD IMAGE: Recommended size 400x400px
+      { name: "Wingspan", image: "", desc: "Bird collection strategy", price: "$60" }, // ADD IMAGE: Recommended size 400x400px
+      { name: "Codenames", image: "", desc: "Word association party game", price: "$25" } // ADD IMAGE: Recommended size 400x400px
+    ];
+
+    const videos = [
+      { name: "How to Play Catan", icon: "🏝️", duration: "12:35" },
+      { name: "Pandemic Strategy Guide", icon: "🦠", duration: "15:20" },
+      { name: "Ticket to Ride Tutorial", icon: "🚂", duration: "10:45" },
+      { name: "Azul Quick Start", icon: "🔷", duration: "8:15" },
+      { name: "Wingspan Full Playthrough", icon: "🦅", duration: "25:40" },
+      { name: "Codenames Party Tips", icon: "�����", duration: "14:10" }
+    ];
+
+    let selectedBundleSize = 0;
+    let selectedGames = new Set();
+
+    function showPage(pageName) {
+      document.querySelectorAll('.page').forEach(page => page.classList.remove('active'));
+      document.querySelectorAll('.nav-link').forEach(link => link.classList.remove('active'));
+      
+      document.getElementById(`${pageName}-page`).classList.add('active');
+      event.target.classList.add('active');
+    }
+
+    function selectBundle(size) {
+      selectedBundleSize = size;
+      selectedGames.clear();
+      
+      document.querySelectorAll('.bundle-option').forEach(opt => opt.classList.remove('selected'));
+      event.target.closest('.bundle-option').classList.add('selected');
+      
+      document.getElementById('game-selection').style.display = 'block';
+      document.getElementById('selection-info').style.display = 'block';
+      updateSelectionInfo();
+      renderGames();
+    }
+
+    function renderGames() {
+      const grid = document.getElementById('games-grid');
+      grid.innerHTML = games.map((game, index) => `
+        <div class="game-card" onclick="toggleGame(${index})">
+          <img src="${game.image}" alt="${game.name}" class="game-image">
+          <div class="game-name">${game.name}</div>
+          <div class="game-players">${game.players}</div>
+        </div>
+      `).join('');
+    }
+
+    function toggleGame(index) {
+      const gameCard = event.target.closest('.game-card');
+      
+      if (selectedGames.has(index)) {
+        selectedGames.delete(index);
+        gameCard.classList.remove('selected');
+      } else {
+        if (selectedGames.size < selectedBundleSize) {
+          selectedGames.add(index);
+          gameCard.classList.add('selected');
+        }
+      }
+      
+      updateSelectionInfo();
+    }
+
+    function updateSelectionInfo() {
+      const remaining = selectedBundleSize - selectedGames.size;
+      document.getElementById('remaining').textContent = remaining;
+    }
+
+    function randomSelection() {
+      selectedGames.clear();
+      const shuffled = [...Array(games.length).keys()].sort(() => Math.random() - 0.5);
+      
+      for (let i = 0; i < selectedBundleSize && i < shuffled.length; i++) {
+        selectedGames.add(shuffled[i]);
+      }
+      
+      renderGames();
+      document.querySelectorAll('.game-card').forEach((card, index) => {
+        if (selectedGames.has(index)) {
+          card.classList.add('selected');
+        }
+      });
+      
+      updateSelectionInfo();
+    }
+
+    function addToCollection() {
+      if (selectedGames.size === selectedBundleSize) {
+        const selectedNames = Array.from(selectedGames).map(i => games[i].name).join(', ');
+        const message = document.createElement('div');
+        message.style.cssText = 'position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%); background: white; padding: 2rem 3rem; border-radius: 12px; box-shadow: 0 4px 20px rgba(0,0,0,0.2); z-index: 1000; text-align: center;';
+        message.innerHTML = `
+          <h3 style="color: #AC6895; margin-bottom: 1rem;">Bundle Added!</h3>
+          <p style="color: #666; margin-bottom: 1rem;">Your ${selectedBundleSize}-game bundle has been added to your collection.</p>
+          <button onclick="this.parentElement.remove()" style="background: #AC6895; color: white; border: none; padding: 0.5rem 2rem; border-radius: 6px; cursor: pointer; font-weight: bold;">Close</button>
+        `;
+        document.body.appendChild(message);
+      }
+    }
+
+    // Render shop items
+    const shopGrid = document.getElementById('shop-grid');
+    shopGrid.innerHTML = products.map(product => `
+      <div class="product-card">
+        <img src="${product.image}" alt="${product.name}" class="product-image">
+        <div class="product-name">${product.name}</div>
+        <div class="product-desc">${product.desc}</div>
+        <div class="product-price">${product.price}</div>
+        <button class="btn-buy">Add to Cart</button>
+      </div>
+    `).join('');
+
+    // Render videos
+    const videosGrid = document.getElementById('videos-grid');
+    videosGrid.innerHTML = videos.map(video => `
+      <div class="video-card">
+        <div class="video-thumbnail">
+          <img src="${video.thumbnail}" alt="${video.name}" class="video-thumbnail-image">
+          <div class="play-button">▶</div>
+        </div>
+        <div class="video-info">
+          <div class="video-title">${video.name}</div>
+          <div class="video-duration">Duration: ${video.duration}</div>
+        </div>
+      </div>
+    `).join('');
+
+    async function onConfigChange(config) {
+      document.getElementById('company-name').textContent = config.company_name || defaultConfig.company_name;
+      document.getElementById('tagline').textContent = config.tagline || defaultConfig.tagline;
+      document.getElementById('bundle-title').textContent = config.bundle_title || defaultConfig.bundle_title;
+      document.getElementById('shop-title').textContent = config.shop_title || defaultConfig.shop_title;
+      document.getElementById('videos-title').textContent = config.videos_title || defaultConfig.videos_title;
+      document.getElementById('spotlight-title').textContent = config.spotlight_title || defaultConfig.spotlight_title;
+      document.getElementById('spotlight-title-2').textContent = config.spotlight_title_2 || defaultConfig.spotlight_title_2;
+    }
+
+    if (window.elementSdk) {
+      window.elementSdk.init({
+        defaultConfig,
+        onConfigChange,
+        mapToCapabilities: (config) => ({
+          recolorables: [],
+          borderables: [],
+          fontEditable: undefined,
+          fontSizeable: undefined
+        }),
+        mapToEditPanelValues: (config) => new Map([
+          ["company_name", config.company_name || defaultConfig.company_name],
+          ["tagline", config.tagline || defaultConfig.tagline],
+          ["bundle_title", config.bundle_title || defaultConfig.bundle_title],
+          ["shop_title", config.shop_title || defaultConfig.shop_title],
+          ["videos_title", config.videos_title || defaultConfig.videos_title],
+          ["spotlight_title", config.spotlight_title || defaultConfig.spotlight_title],
+          ["spotlight_title_2", config.spotlight_title_2 || defaultConfig.spotlight_title_2]
+        ])
+      });
+    }
+  </script>
+ <script>(function(){function c(){var b=a.contentDocument||a.contentWindow.document;if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'9a8183d913044e98',t:'MTc2NDc0ODY2Ni4wMDAwMDA='};var a=document.createElement('script');a.nonce='';a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script></body>
+</html>
